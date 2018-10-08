@@ -1,0 +1,413 @@
+<html>
+	<head>
+		<meta charset="utf8">
+		<title>Choose word game TESTS</title>
+		<script type="text/javascript" src="../src/choosewordengine.js"></script>
+	</head>
+	<style>
+		.black {
+			color: black;
+		}
+		.red {
+			color: red;
+			font-weight: bold;
+		}
+		.green  {
+			color: green;
+			font-weight: bold;
+		}
+	</style>
+	<body>
+		<div id="whiteboard"></div>
+		<script type="text/javascript">
+			var tests = new Array();
+			
+			//log function
+			function log_start( text ) {
+				document.write(`<p class="logLine">* <strong>${text}</strong> ` );
+			};
+			
+			function log_result( YesOrNo, message ) {
+				let className = 'black';
+				let text = '';
+				if(YesOrNo) {
+					className = 'green';
+					text = '(PASSED)';
+				} else {
+					className = 'red';
+					text = '(FAILED)';
+				}
+				document.write(`<span class="${className}">${text}</span>. ${message}</p>`);
+			}
+			
+			//Create the object
+			tests.push( function() {
+				try {
+					log_start("Creating the instance of the generator");
+					let engine = new gameChooseEngine();
+					if( engine instanceof gameChooseEngine ) {
+						log_result(true,"Generator created!");
+					} else {
+						log_result(false,"Generator is not an instance of GameChooseEngine");
+					}
+				} catch(e) {
+					log_result(false,`Exception ${e.message}`);
+				}
+			});
+			
+			//append an option
+			tests.push( function() {
+				try{
+					log_start("Append an option");
+					let engine = new gameChooseEngine();
+					if( !(engine instanceof gameChooseEngine) ) {
+						log_result(false,"Game engine not created");
+						return false;
+					} else {
+						engine.appendOption("Choose correct answer","[[This]] notThis");
+						if(engine.optionCount!=1) {
+							log_result(false,`Invalid number of options: ${engine.optionCount}`);
+						} else {
+							log_result(true,'');
+						}
+					}
+				} catch(e) {
+					log_result(false,`An exception ocurred ${e.message}`);
+				}
+			});
+			
+			//append two identical options ... it's not an error, simply ignore them
+			tests.push( function() {
+				try {
+					log_start("Append two identical options");
+					let engine = new gameChooseEngine();
+					if( !(engine instanceof gameChooseEngine) ) {
+						log_result(false,'Game engine not created');
+						return false;
+					} else {
+						engine.appendOption("1","1");
+						engine.appendOption("1","1");
+						
+						if( engine.optionCount!=1 ) {
+							log_result(false,`Expected 1 item, found ${engine.optionCount}`);
+						} else {
+							log_result(true,'');
+						}
+					}
+				} catch(e) {
+					log_result(false,`An exception ocurred ${e.message}`);
+				}
+			});
+			
+			//Choose a number of options
+			tests.push( function () {
+				log_start("Choose some items, more of what I have");
+				try {
+					let engine = new gameChooseEngine();
+					if( !(engine instanceof gameChooseEngine) ) {
+						log_result(false,'Game engine not created');
+						return false;
+					}
+					
+					//we have 0 items, try to choose 1
+					let options = engine.selectRandomOptions(1);
+					log_result(false,'Select Random options has returned an array, when it has to throw an exception');
+				} catch(e) {
+					if( e instanceof EngineError ) {
+						log_result(true,`Controlled exception thrown ${e.message}`);
+					} else {
+						log_result(false,`Uncontrolled exception thrown ${e.message}`);
+					}
+				}
+				
+				log_start("Choose negative number of items");
+				try {
+					let engine = new gameChooseEngine();
+					if( !(engine instanceof gameChooseEngine) ) {
+						log_result(false,'Game engine not created');
+						return false;
+					}
+					
+					let options = engine.selectRandomOptions(-1);
+					log_result(false,'Select random options has returned an array, when it has to throw an exception');					
+				} catch(e) {
+					if( e instanceof EngineError) {
+						log_result(true,`Controlled exception thrown ${e.message}`);
+					} else {
+						log_result(false,`Uncontrolled exception thrown ${e.message}`);
+					}
+				}
+				
+				log_start("Choose some items");
+				try {
+					let engine = new gameChooseEngine();
+					if( !(engine instanceof gameChooseEngine) ) {
+						log_result(false,'Game engine not created');
+						return false;
+					}
+					
+					engine.appendOption("1","1");
+					engine.appendOption("2","2");
+					engine.appendOption("3","3");
+					engine.appendOption("4","4");
+					engine.appendOption("5","5");
+					engine.appendOption("6","6");
+					engine.appendOption("7","7");
+					engine.appendOption("8","8");
+					engine.appendOption("9","9");
+					engine.appendOption("10","10");
+					engine.appendOption("11","11");
+					let options = engine.selectRandomOptions(7);
+					if( options.length != 7 ) {
+						log_result(false,`Requested 7 options, got ${options.length}`);	
+					} else {
+						let strOptions = "";
+						for(let i=0;i<options.length;i++) {
+							if(i!=0) strOptions = strOptions + ",";
+							strOptions = strOptions + options[i]['statment'];
+						}
+						log_result(true,`Requested 7 options in random order, got ${strOptions}`);
+					}
+										
+				} catch(e) {
+					if( e instanceof EngineError) {
+						log_result(false,`Controlled exception thrown ${e.message}`);
+					} else {
+						log_result(false,`Uncontrolled exception thrown ${e.message}`);
+					}
+				}
+			});
+			
+			//transform strings
+			tests.push( function() {
+				log_start('Transform string without any indication');
+				try {
+					let engine = new gameChooseEngine();
+					if( !(engine instanceof gameChooseEngine) ) {
+						log_result(false,'Game engine not created');
+						return false;
+					}
+					
+					let expected = "<span class='choose-game-word' data-mark=\"0\">1</span> " +
+						       "<span class='choose-game-word' data-mark=\"0\">2</span> " +
+						       "<span class='choose-game-word' data-mark=\"0\">3</span> ";
+						       
+					let transformed = engine.transformString("1 2 3");
+					if(transformed!=expected) {
+						log_result(false,`strings are not equal <pre>${transformed}</pre>`);
+					} else {
+						log_result(true,'returned what is expected (well formated code with nothing markable)');
+					}					
+				} catch(e) {
+					log_result(false,`Unmanaged exception ${e.message}`);
+				}
+				
+				log_start('Transform string with one indication');
+				try {
+					let engine = new gameChooseEngine();
+					if( !(engine instanceof gameChooseEngine) ) {
+						log_result(false,'Game engine not created');
+						return false;
+					}
+					
+					let expected = "<span class='choose-game-word' data-mark=\"1\">1</span> " +
+						       "<span class='choose-game-word' data-mark=\"0\">2</span> " +
+						       "<span class='choose-game-word' data-mark=\"0\">3</span> ";
+						       
+					let transformed = engine.transformString("[[1]] 2 3");
+					if(transformed!=expected) {
+						log_result(false,`strings are not equal <xmp>${transformed}</xmp>`);
+					} else {
+						log_result(true,'returned what is expected (well formated code with one item markable)');
+					}					
+				} catch(e) {
+					log_result(false,`Unmanaged exception ${e.message}`);
+				}
+				
+				log_start('Transform string with more than one indication');
+				try {
+					let engine = new gameChooseEngine();
+					if( !(engine instanceof gameChooseEngine) ) {
+						log_result(false,'Game engine not created');
+						return false;
+					}
+					
+					let expected = "<span class='choose-game-word' data-mark=\"1\">1</span> " +
+						       "<span class='choose-game-word' data-mark=\"0\">2</span> " +
+						       "<span class='choose-game-word' data-mark=\"1\">3</span> ";
+						       
+					let transformed = engine.transformString("[[1]] 2 [[3]]");
+					if(transformed!=expected) {
+						log_result(false,`strings are not equal <xmp>${transformed}</xmp>`);
+					} else {
+						log_result(true,'returned what is expected (well formated code with two items markable)');
+					}					
+				} catch(e) {
+					log_result(false,`Unmanaged exception ${e.message}`);
+				}
+				
+				log_start('Transform string with unbalanced open');
+				try {
+					let engine = new gameChooseEngine();
+					if( !(engine instanceof gameChooseEngine) ) {
+						log_result(false,'Game engine not created');
+						return false;
+					}
+					
+					let expected = "<span class='choose-game-word' data-mark=\"1\">1</span> " +
+						       "<span class='choose-game-word' data-mark=\"1\">2</span> " +
+						       "<span class='choose-game-word' data-mark=\"1\">3</span> ";
+						       
+					let transformed = engine.transformString("[[1 2 3");
+					if(transformed!=expected) {
+						log_result(false,`strings are not equal <xmp>${transformed}</xmp>`);
+					} else {
+						log_result(true,'returned what is expected (expands mark up to the end)');
+					}					
+				} catch(e) {
+					log_result(false,`Unmanaged exception ${e.message}`);
+				}
+				
+				log_start('Transform string with unbalanced close');
+				try {
+					let engine = new gameChooseEngine();
+					if( !(engine instanceof gameChooseEngine) ) {
+						log_result(false,'Game engine not created');
+						return false;
+					}
+					
+					let expected = "<span class='choose-game-word' data-mark=\"1\">1</span> " +
+						       "<span class='choose-game-word' data-mark=\"0\">2</span> " +
+						       "<span class='choose-game-word' data-mark=\"0\">3</span> ";
+						       
+					let transformed = engine.transformString("[[1]] 2]] 3");
+					if(transformed!=expected) {
+						log_result(false,`strings are not equal <xmp>${transformed}</xmp>`);
+					} else {
+						log_result(true,'returned what is expected (ignores it)');
+					}					
+				} catch(e) {
+					log_result(false,`Unmanaged exception ${e.message}`);
+				}
+				
+				log_start('Transform string with nested open');
+				try {
+					let engine = new gameChooseEngine();
+					if( !(engine instanceof gameChooseEngine) ) {
+						log_result(false,'Game engine not created');
+						return false;
+					}
+					
+					let expected = "<span class='choose-game-word' data-mark=\"1\">1</span> " +
+						       "<span class='choose-game-word' data-mark=\"1\">2</span> " +
+						       "<span class='choose-game-word' data-mark=\"0\">3</span> ";
+						       
+					let transformed = engine.transformString("[[1 [[2]] 3");
+					if(transformed!=expected) {
+						log_result(false,`strings are not equal <xmp>${transformed}</xmp>`);
+					} else {
+						log_result(true,'returned what is expected (ignores it)');
+					}					
+				} catch(e) {
+					log_result(false,`Unmanaged exception ${e.message}`);
+				}
+			})
+			
+			//whiteboardId
+			tests.push( function() {
+				log_start('Set the whiteboard Id');
+				try {
+					let engine = new gameChooseEngine();
+					if( !(engine instanceof gameChooseEngine) ) {
+						log_result(false,'Game engine not created');
+						return false;
+					}
+					
+					const engineName = 'anId';
+					
+					engine.whiteBoardId = engineName;
+					if( engine.whiteBoardId !== engineName ) {
+						log_result(false, `Game engine blackboards id not preserved ${engine.whiteBoardId}`);
+					} else {
+						log_result(true, 'Game engine bloackboard id preserved');
+					}
+				} catch (e) {
+					log_result(false,`Unmanaged exception ${e.message}`);
+				}
+			});
+			
+			//mainTitle
+			tests.push( function() {
+				log_start('Set the whiteboard Title');
+				try {
+					let engine = new gameChooseEngine();
+					if( !(engine instanceof gameChooseEngine) ) {
+						log_result(false,'Game engine not created');
+						return false;
+					}
+					
+					const engineName = 'anId';
+					
+					engine.mainTitle = engineName;
+					if( engine.mainTitle !== engineName ) {
+						log_result(false, `Game engine blackboards Title not preserved ${engine.mainTitle}`);
+					} else {
+						log_result(true, 'Game engine bloackboard Title preserved');
+					}
+				} catch (e) {
+					log_result(false,`Unmanaged exception ${e.message}`);
+				}
+			});
+			
+			//clear Whiteboard
+			tests.push( function() {
+				let createWhiteBoard = function(whiteBoardId) {
+					let whiteboard = document.createElement('div');
+					if( !whiteboard ) throw new Error('whiteboard could not be created');					
+					whiteboard.id = whiteBoardId;
+					whiteboard.innerHTML = 'SomeText';
+					document.body.appendChild(whiteboard);	
+
+					return true;
+				}
+				
+				log_start('Clear whiteboard');
+				try {
+					const myWhiteBoardId = 'whiteboard';
+					createWhiteBoard(myWhiteBoardId);
+					
+					let engine = new gameChooseEngine();
+					if( !(engine instanceof gameChooseEngine) ) {
+						log_result(false,'Game engine not created');
+						return false;
+					}
+					engine.whiteBoardId = myWhiteBoardId;
+					engine.clearWhiteBoard();			
+					
+					if( !document.getElementById(myWhiteBoardId).firstChild ) {
+						log_result(true,'Whiteboard cleared');	
+					} else {
+						log_result(false,`Some text found ${document.getElementById(myWhiteBoardId).innerHTML}`);
+					}
+					//whiteboard.parentNode.removeChild(whiteboard);
+				} catch (e) {
+					log_result(false,`Unmanaged exception ${e.message}`);
+				}
+			});
+			
+			//TODO gameStart()
+			
+			if( tests.length === 0 ) {
+				document.write('Array tests is empty!');
+			}
+			
+			for( let test of tests ) {
+				if( typeof(test) === 'function' ) {
+					test();
+				} else {
+					document.write('test is not a function');
+				}
+			}
+		</script>
+	</body>
+</html>

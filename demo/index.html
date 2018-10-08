@@ -1,0 +1,28 @@
+<html>
+	<head>
+		<meta charset="utf8">
+		<title>Choose word game Example</title>
+		<script type="text/javascript" src="../src/choosewordengine.js"></script>
+	</head>
+	<body>
+		<div id="whiteboard">
+		asdf
+		</div>
+		<script type="text/javascript">
+		let engine = new gameChooseEngine();
+		if( !(engine instanceof gameChooseEngine) ) {
+			throw new Error('game engine could not be created');
+		}
+		engine.whiteBoardId = 'whiteboard';
+		engine.mainTitle    = 'Ejemplos';
+		engine.appendOption('Fórmula del ácido sulfúrico','[[H<sub>2</sub>SO<sub>4</sub>]] H<sub>2</sub>SO<sub>3</sub>');
+		engine.appendOption('Selecciona todos los artículos','[[La]] abuela cogió [[el]] coche para ir a [[los]] campos de [[las]] encinas.');
+		engine.appendOption('Señala los verbos','[[Vi]] un coche que pudo [[haber sido]] muy bonito en otro tiempo, pero ahora no.');
+		engine.appendOption('Señala todas las palabras que forman el <em>Objeto Directo</em>','¿Has visto [[a tu hermano]]? Sí, [[lo]] he visto.');
+		engine.appendOption('Señala todas las palabras que forman el <em>Objeto Indirecto</em>','[[Le]] di el regalo [[a Paquita, la hija de mi sobrina]].');
+		engine.appendOption('Señala todas las palabras que forman el <em>Complemento Preposicional</em>','Ayer fuí cerca [[de aquí]].');
+		engine.appendOption('Señala todas las palabras que forman el <em>Complemento circunstancial</em>','Ha estacionado la moto [[en el garaje]].');
+		engine.gameStart();
+		</script>
+	</body>
+</html>
